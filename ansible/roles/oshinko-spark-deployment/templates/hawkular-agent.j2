@@ -1,0 +1,15 @@
+collection_interval_secs: 60
+endpoints:
+- type: jolokia
+  protocol: "http"
+  port: 7777
+  path: /jolokia/
+  tags:
+    name: ${POD:name}
+  metrics:
+  - name: java.lang:type=Threading#ThreadCount
+    type: counter
+    id:   VM Thread Count
+  - name: java.lang:type=Memory#HeapMemoryUsage#used
+    type: gauge
+    id:   VM Heap Memory Used

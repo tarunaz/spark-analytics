@@ -1,0 +1,54 @@
+---
+- fail:
+    msg: "spark_project variable must be set to spark namespace"
+  when: spark_project is undefined
+
+# allow passing in a tempdir
+- name: Create temp directory for doing work in
+  command: mktemp -d /tmp/container-spark-XXXXXX
+  register: mktemp
+  changed_when: False
+
+- set_fact:
+    tempdir: "{{ mktemp.stdout }}"
+
+- name: "Copy spark metrics configs to the remote"
+  template:
+    src: 'hawkular-agent.j2'
+    dest: '{{ tempdir }}/hawkular-agent'
+
+- name: Set spark metrics configmaps
+  oc_configmap:
+    state: present
+    name: '{{ oshinko_spark_cluster }}-metrics'
+    namespace: "{{ spark_project }}"
+    kubeconfig: '{{ kubeconfig }}'
+    from_file:
+      hawkular-openshift-agent: '{{ tempdir }}/hawkular-agent'
+
+- name: "Copy spark infrastructure template to the remote"
+  template:
+    src: '{{ item }}.j2'
+    dest: '{{ tempdir }}/{{ item }}'
+  with_items:
+#  - spark-model-store.yaml
+  - spark-service.yaml
+  - spark-master.yaml
+  - spark-worker.yaml
+
+- name: "Create spark infrastructure template"
+  shell: oc apply -f {{ tempdir }}/{{ item }}  -n {{ spark_project }}
+  with_items:
+#  - spark-model-store.yaml
+  - spark-service.yaml
+  - spark-master.yaml
+  - spark-worker.yaml
+
+- name: "Expose service as a route"
+  shell: "oc expose svc {{ oshinko_spark_cluster }}-ui -n {{ spark_project }}"
+
+- name: Delete temp directory
+  file:
+    name: "{{ tempdir }}"
+    state: absent
+  changed_when: False

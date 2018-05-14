@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: spark-sample
+  name: spark-sample
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        job-name: spark-sample
+      name: spark-sample
+    spec:
+      containers:
+      - env:
+        - name: OSHINKO_CLUSTER_NAME
+          value: oshinko-1-4zzlm
+        - name: APP_ARGS
+          value: --servers=apache-kafka:9092 --input_channel=Kafka --input_topic=input_test
+        - name: SPARK_OPTIONS
+          value: --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.1.0
+        - name: OSHINKO_DEL_CLUSTER
+          value: "true"
+        - name: APP_EXIT
+          value: "true"
+        - name: ES_HOST
+          value: "elasticsearch.perf.lab.eng.bos.redhat.com"
+        - name: ES_PORT
+          value: "80"
+        - name: ES_OUTPUT_INDEX
+          value: "word2vec_test"
+        - name: OSHINKO_NAMED_CONFIG
+        - name: OSHINKO_SPARK_DRIVER_CONFIG
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        image: docker-registry.default.svc:5000/data-hub/spark-sample
+        imagePullPolicy: Always
+        name: spark-sample
+        volumeMounts:
+        - mountPath: /etc/podinfo
+          name: podinfo
+      restartPolicy: OnFailure
+      schedulerName: default-scheduler
+      serviceAccount: oshinko
+      serviceAccountName: oshinko
+      volumes:
+      - downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels
+            path: labels
+        metadata:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels
+            name: labels
+        name: podinfo

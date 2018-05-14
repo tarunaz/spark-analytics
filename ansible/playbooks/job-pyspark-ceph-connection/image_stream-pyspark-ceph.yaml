@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ImageStream
+metadata:
+  labels:
+    app: pyspark-ceph-connection
+  name: pyspark-ceph-connection
+spec:
+  dockerImageRepository: pyspark-ceph-connection
+  tags:
+  - annotations: null
+    generation: 1
+    importPolicy: {}
+    name: latest
+    referencePolicy:
+      type: Source

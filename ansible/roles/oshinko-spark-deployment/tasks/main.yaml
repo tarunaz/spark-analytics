@@ -1,0 +1,12 @@
+---
+- name: Deploy Oshinko Web UI
+  include: "{{ role_path }}/tasks/deploy_oshinko_webui.yaml"
+  when: oshinko_deploy| default(false) | bool
+
+- name: Cleanup spark deployment
+  include: "{{ role_path }}/tasks/cleanup_spark.yaml"
+  when: not spark_deploy | default(true) | bool
+
+- name: "Deploy spark infrastructure"
+  include: "{{ role_path }}/tasks/deploy_spark.yaml"
+  when: spark_deploy| default(true) | bool

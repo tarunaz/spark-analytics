@@ -1,0 +1,9 @@
+---
+- name: Simple pyspark example
+  hosts: nodes
+  roles:
+  - role: simple-job-openshift
+    oshinko_project: analytics-pipeline-stage
+    oshinko_job_name: simple-pyspark-staging
+    oshinko_cluster: spark-cluster
+    oshinko_image_name: docker-registry.default.svc:5000/dh-prod-analytics-factory/simple-pyspark

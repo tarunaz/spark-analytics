@@ -1,0 +1,11 @@
+---
+- name: "Go to spark project"
+  command: oc project {{ spark_project }}
+
+- name: delete items
+  shell: "oc delete {{ item }}  -n {{ spark_project }}|| true"
+  with_items:
+  - all --selector=oshinko-cluster={{ oshinko_spark_cluster }}
+  - route {{ oshinko_spark_cluster }}-ui
+  - configmap {{ oshinko_spark_cluster }}-metrics
+

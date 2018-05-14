@@ -1,0 +1,10 @@
+debug: ""
+spark_image: "shgriffi/openshift-spark:2017-12-18.1"
+
+spark_project: spark-staging
+oshinko_spark_cluster: spark-cluster
+spark_workers: 2
+
+kubeconfig: /Users/asherkho-osx/.kube/config
+# Define certs_dir to add certificates to the job
+# certs_dir: "{{ role_path }}/files/"

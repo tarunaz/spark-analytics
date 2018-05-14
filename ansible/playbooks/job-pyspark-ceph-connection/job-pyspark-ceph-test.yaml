@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: pyspark-ceph-connection
+  name: pyspark-ceph-connection
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    spec:
+      containers:
+      - env:
+        - name: OSHINKO_CLUSTER_NAME
+          value: spark-cluster
+        - name: APP_ARGS
+        - name: SPARK_OPTIONS
+          value: --packages com.amazonaws:aws-java-sdk:1.7.4,org.apache.hadoop:hadoop-aws:2.7.3
+        - name: OSHINKO_DEL_CLUSTER
+          value: "true"
+        - name: APP_EXIT
+          value: "true"
+        - name: OSHINKO_NAMED_CONFIG
+        - name: OSHINKO_SPARK_DRIVER_CONFIG
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        image: docker-registry.default.svc:5000/dh-stage-analytics-factory/pyspark-ceph-connection
+        imagePullPolicy: Always
+        name: spark-sample
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/podinfo
+          name: podinfo
+      dnsPolicy: ClusterFirst
+      restartPolicy: OnFailure
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: oshinko
+      serviceAccountName: oshinko
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels
+            path: labels
+        name: podinfo

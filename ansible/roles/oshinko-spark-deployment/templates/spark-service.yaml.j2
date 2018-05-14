@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      oshinko-cluster: {{ oshinko_spark_cluster }}
+      oshinko-type: webui
+    name: {{ oshinko_spark_cluster }}-ui
+    namespace: {{ spark_project }}
+  spec:
+    ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      oshinko-cluster: {{ oshinko_spark_cluster }}
+      oshinko-type: master
+    type: ClusterIP
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      oshinko-cluster: {{ oshinko_spark_cluster }}
+      oshinko-type: master
+    name: {{ oshinko_spark_cluster }}
+    namespace: {{ spark_project }}
+  spec:
+    ports:
+    - port: 7077
+      protocol: TCP
+      targetPort: 7077
+    selector:
+      oshinko-cluster: {{ oshinko_spark_cluster }}
+      oshinko-type: master
+    type: ClusterIP

@@ -1,0 +1,9 @@
+---
+- name: Deploy Spark
+  hosts: nodes
+  roles:
+  - role: oshinko-spark-deployment
+#    debug: "true"
+    oshinko_spark_cluster: spark-cluster
+    kubeconfig: /Users/asherkho-osx/.kube/config
+    spark_project: test-anton

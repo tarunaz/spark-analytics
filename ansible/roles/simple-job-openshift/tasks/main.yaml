@@ -1,0 +1,36 @@
+---
+# allow passing in a tempdir
+- name: Create temp directory for doing work in
+  command: mktemp -d /tmp/oshinko-spark-sample-XXXXXX
+  register: mktemp
+  changed_when: False
+
+- set_fact:
+    tempdir: "{{ mktemp.stdout }}"
+
+- name: Copy oshinko job config to the remote
+  template:
+    src: job.yaml.j2
+    dest: '{{ tempdir }}/job.yaml'
+  changed_when: no
+
+- name: Change the dest project
+  shell: oc project {{ oshinko_project }}
+
+- name: Start a new analytic job pod
+  shell: oc apply -f {{ tempdir }}/job.yaml -n {{ oshinko_project }}
+
+- name: Wait for job to be finish
+  shell: oc get -n {{ oshinko_project }} job {{ oshinko_job_name }} | grep {{ oshinko_job_name }} | awk '{ print $3 }'
+  register: job_res
+  until: "'1' in job_res.stdout"
+  retries: 30
+  delay: 30
+  when:
+  - oshinko_wait_job | default(true) | bool
+
+- name: Delete temp directory
+  file:
+    name: "{{ tempdir }}"
+    state: absent
+  changed_when: False

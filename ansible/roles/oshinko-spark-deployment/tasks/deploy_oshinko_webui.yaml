@@ -1,0 +1,38 @@
+---
+- fail:
+    msg: "spark_project variable must be set to spark namespace"
+  when: spark_project is undefined
+
+# allow passing in a tempdir
+- name: Create temp directory for doing work in
+  command: mktemp -d /tmp/container-oshinko-XXXXXX
+  register: mktemp
+  changed_when: False
+
+- set_fact:
+    tempdir: "{{ mktemp.stdout }}"
+
+- name: "Service account for oshinko template"
+  template:
+    src: 'oshinko-serviceaccount.yaml.j2'
+    dest: '{{ tempdir }}/oshinko-serviceaccount.yaml'
+
+- name: "Create oshinko service account"
+  shell: oc apply -f {{ tempdir }}/oshinko-serviceaccount.yaml  -n {{ spark_project }}
+
+- name: "Ansible vars substitution in oshinko webui template"
+  template:
+    src: 'oshinko-webui-template.yaml.j2'
+    dest: '{{ tempdir }}/oshinko-webui-template.yaml'
+
+- name: "Create oshinko webui template"
+  shell: oc apply -f {{ tempdir }}/oshinko-webui-template.yaml  -n {{ spark_project }}
+
+- name: "Expose service as a route"
+  shell: "oc process oshinko-webui | oc apply -n {{ spark_project }} -f -"
+
+- name: Delete temp directory
+  file:
+    name: "{{ tempdir }}"
+    state: absent
+  changed_when: False

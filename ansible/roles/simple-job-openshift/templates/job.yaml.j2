@@ -1,0 +1,58 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: '{{ oshinko_job_name }}'
+  name: '{{ oshinko_job_name }}'
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        job-name: '{{ oshinko_job_name }}'
+      name: '{{ oshinko_job_name }}'
+    spec:
+      containers:
+      - env:
+        - name: OSHINKO_CLUSTER_NAME
+          value: '{{ oshinko_cluster }}'
+        - name: APP_ARGS
+        - name: SPARK_OPTIONS
+        - name: OSHINKO_DEL_CLUSTER
+          value: "true"
+        - name: APP_EXIT
+          value: "true"
+        - name: OSHINKO_NAMED_CONFIG
+        - name: OSHINKO_SPARK_DRIVER_CONFIG
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        image: {{ oshinko_image_name }}
+        imagePullPolicy: Always
+        name: spark-sample
+        volumeMounts:
+        - mountPath: /etc/podinfo
+          name: podinfo
+      restartPolicy: OnFailure
+      schedulerName: default-scheduler
+      serviceAccount: oshinko
+      serviceAccountName: oshinko
+      volumes:
+      - downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels
+            path: labels
+        metadata:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels
+            name: labels
+        name: podinfo

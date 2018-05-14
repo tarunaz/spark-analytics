@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: spark-sample
+  name: spark-sample
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: spark-sample:latest
+  runPolicy: Serial
+  source:
+    git:
+      uri: https://gitlab.cee.redhat.com/data-hub/spark-analytics.git
+    type: Git
+  strategy:
+    sourceStrategy:
+      env:
+      - name: APP_FILE
+        value: ../../spark/kafka_driver.py
+      - name: GIT_SSL_NO_VERIFY
+        value: "true"
+      forcePull: true
+      from:
+        kind: DockerImage
+        name: radanalyticsio/radanalytics-pyspark
+    type: Source
+  triggers:
+  - type: ConfigChange
+  - github:
+      secret: spark-sample
+    type: GitHub
+  - generic:
+      secret: spark-sample
+    type: Generic
+status:
+  lastVersion: 0

@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: pyspark-ceph-connection
+  name: pyspark-ceph-connection
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: pyspark-ceph-connection:latest
+  runPolicy: Serial
+  source:
+    git:
+      uri: https://gitlab.cee.redhat.com/data-hub/spark-analytics.git
+    type: Git
+  strategy:
+    sourceStrategy:
+      env:
+      - name: APP_FILE
+        value: ansible/playbooks/job-pyspark-ceph-connection/pyspark_ceph_connection.py
+      - name: GIT_SSL_NO_VERIFY
+        value: "true"
+      forcePull: true
+      from:
+        kind: DockerImage
+        name: docker-registry.engineering.redhat.com/aicoe/pyspark-base-image:final
+    type: Source
+  triggers:
+  - type: ConfigChange
+  - github:
+      secret: pyspark-ceph-connection
+    type: GitHub
+  - generic:
+      secret: spark-sample
+    type: Generic
+status:
+  lastVersion: 0

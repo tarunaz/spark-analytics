@@ -1,0 +1,8 @@
+debug: ""
+
+oshinko_project: oshinko-staging
+oshinko_cluster: oshinko
+oshinko_job_name: oshinko-job-1
+oshinko_image_name: docker-registry.default.svc:5000/phoebe-analytics-scripts-test/spark-sample
+
+kafka_server: kafka:9092

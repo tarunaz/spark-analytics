@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ImageStream
+metadata:
+  labels:
+    app: spark-sample
+  name: spark-sample
+spec:
+  dockerImageRepository: spark-sample
+  tags:
+  - annotations: null
+    generation: 1
+    importPolicy: {}
+    name: latest
+    referencePolicy:
+      type: Source
+status:
+  dockerImageRepository: docker-registry.default.svc:5000/emqiu-final/spark-sample

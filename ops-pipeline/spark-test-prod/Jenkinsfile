@@ -1,0 +1,49 @@
+#!/usr/bin/env groovy
+/**
+  This is the Jenkinsfile for kicking off the ansible playbook to pull
+  data from elasticsearch to kafka nightly.
+ */
+ansiColor('xterm') {
+  timestamps {
+        node('dhslave') {
+
+          configFileProvider(
+          [configFile( fileId: 'kubeconfig', variable: 'KUBECONFIG')]){
+	      stage('Pull Git Repositories') {
+                checkout_logstash_container_repo()
+              }
+              stage('Trigger Playbook') {
+                start_deploy_spark()
+              }
+          }
+        }
+  }
+}
+
+def checkout_logstash_container_repo() {
+    checkout poll: false, scm: [
+      $class: 'GitSCM',
+      branches: [[name: "*/master"]],
+      doGenerateSubmoduleConfigurations: false,
+      submoduleCfg: [],
+      userRemoteConfigs: [[url: 'https://gitlab.cee.redhat.com/data-hub/spark-analytics.git']]
+    ]
+}
+
+def start_deploy_spark() {
+  try {
+      sh '''
+virtualenv $WORKSPACE/venv
+source $WORKSPACE/venv/bin/activate
+
+set -ex
+cd ansible
+ansible-playbook playbooks/job-simple-pyspark-prod.yaml -vvv -i inventory -e "kubeconfig=$KUBECONFIG oshinko_project=${NAMESPACE} oshinko_job_name=${JOB_NAME}-${BUILD_NUMBER}"
+'''
+
+  } catch (err) {
+    echo 'Exception caught, being re-thrown...'
+    throw err
+  }
+
+}

@@ -1,0 +1,58 @@
+#!/usr/bin/env groovy
+/**
+  This is the Jenkinsfile for kicking off the ansible playbook to pull
+  data from elasticsearch to kafka nightly.
+ */
+ansiColor('xterm') {
+  timestamps {
+        node('dhslave') {
+
+	  try{
+          configFileProvider(
+          [configFile( fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1509993931188', variable: 'KUBECONFIG')]){
+              stage('Pull Git Repositories') {
+                checkout_logstash_container_repo()
+              }
+              stage('Trigger Playbook') {
+                start_data_pulling_playbook()
+              }
+          }
+	  } catch(err) {
+	    	   mail body: "Failures in the ${env.JOB_NAME} #${env.BUILD_NUMBER} pipeline have been detected! Please see ${env.BUILD_URL} for more details.",
+		   subject: "[end2end pipeline]Failures Detected in ${env.JOB_NAME}#${env.BUILD_NUMBER}",
+		   to: 'data-hub@redhat.com'
+	       throw err
+	  }
+        }
+  }
+}
+
+
+def checkout_logstash_container_repo() {
+    checkout poll: false, scm: [
+      $class: 'GitSCM',
+      branches: [[name: "*/master"]],
+      doGenerateSubmoduleConfigurations: false,
+      submoduleCfg: [],
+      userRemoteConfigs: [[url: 'https://gitlab.cee.redhat.com/data-hub/container-logstash.git']]
+    ]
+}
+
+
+def start_data_pulling_playbook() {
+  try {
+      sh '''
+virtualenv $WORKSPACE/venv
+source $WORKSPACE/venv/bin/activate
+
+set -ex
+cd ansible
+ansible-playbook playbooks/job-es-to-kafka-prod-running-model.yaml -vvv -i inventory --extra-vars "kubeconfig=$KUBECONFIG logstash_job_name=logstash-${JOB_NAME}-${BUILD_NUMBER} oshinko_job_name=oshinko-${JOB_NAME}-${BUILD_NUMBER} logstash_project=${NAMESPACE} oshinko_project=${NAMESPACE} analytics_model_date: ${MODEL_DATE}"
+'''
+
+  } catch (err) {
+    echo 'Exception caught, being re-thrown...'
+    throw err
+  }
+
+}

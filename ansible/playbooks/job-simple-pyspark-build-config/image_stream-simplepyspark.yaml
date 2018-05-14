@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ImageStream
+metadata:
+  labels:
+    app: simple-pyspark
+  name: simple-pyspark
+spec:
+  dockerImageRepository: simple-pyspark
+  tags:
+  - annotations: null
+    generation: 1
+    importPolicy: {}
+    name: latest
+    referencePolicy:
+      type: Source

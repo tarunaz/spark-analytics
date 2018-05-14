@@ -1,0 +1,4 @@
+kafka
+nltk==3.2.2
+elasticsearch==5.2.0
+XlsxWriter==0.9.6
