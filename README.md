@@ -12,6 +12,6 @@ This folder contains information for deploying and running analytics job.
 
 ## Usage
 
-docker build -f Dockerfile_spark_cluster_image -t spark-analytics:2.3.0 .
-docker tag <imageid> tmehrarh/spark-analytics:2.3.0
-docker push tmehrarh/spark-analytics:2.3.0
+- docker build -f Dockerfile_spark_cluster_image -t spark-analytics:2.3.0 .
+- docker tag <imageid> tmehrarh/spark-analytics:2.3.0
+- docker push tmehrarh/spark-analytics:2.3.0
